@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 
 export const scene = new THREE.Scene();
-export const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+// Lower FOV (40 instead of 75) reduces edge distortion (stretching)
+export const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
 const canvas = document.querySelector('#three-canvas');
 const stage = document.querySelector('#stage');
 
@@ -30,7 +31,8 @@ const pointLight = new THREE.PointLight(0xffffff, 1);
 pointLight.position.set(5, 5, 5);
 scene.add(pointLight);
 
-camera.position.z = 5;
+// Move camera further back to compensate for lower FOV
+camera.position.z = 15;
 
 // Handle resize
 window.addEventListener('resize', updateSize);

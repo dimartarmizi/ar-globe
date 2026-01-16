@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { scene } from './scene.js';
+import { scene, camera } from './scene.js';
 
 const geometry = new THREE.SphereGeometry(1, 64, 64);
 const textureLoader = new THREE.TextureLoader();
@@ -26,20 +26,24 @@ export function updateGlobe(data) {
 	// Hand 1 (Master) - Controls Position
 	const hand1 = data.hands[0];
 
+	// Calculate visible area at Z=0 for the current camera perspective
+	const vFOV = THREE.MathUtils.degToRad(camera.fov);
+	const dist = camera.position.z;
+	const height = 2 * Math.tan(vFOV / 2) * dist;
+	const width = height * camera.aspect;
+
 	// Fix Mirroring: Invert X coordinate
-	// data.x (0-1) -> targetX (-10 to 10)
-	// (1 - hand1.x) maps 0 to 1, 1 to 0 (flipping horizontally)
-	const targetX = ((1 - hand1.x) - 0.5) * 12;
-	const targetY = -(hand1.y - 0.5) * 10;
+	// Exact mapping based on calculated frustum size
+	const targetX = ((1 - hand1.x) - 0.5) * width;
+	const targetY = -(hand1.y - 0.5) * height;
 
 	// Smooth position follow
-	globe.position.x += (targetX - globe.position.x) * 0.15;
-	globe.position.y += (targetY - globe.position.y) * 0.15;
+	globe.position.x += (targetX - globe.position.x) * 0.2;
+	globe.position.y += (targetY - globe.position.y) * 0.2;
 
 	// Dynamic Scaling based on hand distance (hand1.scale)
-	// hand_scale typically ranges from ~0.1 (far) to ~0.4 (close)
-	// We'll map this to a globe scale. Base scale 1.0 at hand_scale 0.2
-	const targetScale = hand1.scale * 5.0; 
+	// Adjusted multiplier for the new camera distance
+	const targetScale = hand1.scale * 8.0; 
 	const currentScale = globe.scale.x;
 	const newScale = currentScale + (targetScale - currentScale) * 0.15;
 	globe.scale.set(newScale, newScale, newScale);
