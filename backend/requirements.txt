@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+opencv-python
+mediapipe==0.10.11
+numpy<2.0.0
+websockets
+python-multipart

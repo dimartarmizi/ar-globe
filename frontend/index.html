@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Hand Gesture Globe (AR-like)</title>
+	<style>
+		body {
+			margin: 0;
+			overflow: hidden;
+			background: #000;
+			font-family: 'Inter', system-ui, -apple-system, sans-serif;
+			color: white;
+		}
+
+		#container {
+			position: relative;
+			width: 100vw;
+			height: 100vh;
+			background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%);
+		}
+
+		#video-feed {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			transform: scaleX(-1);
+			/* Mirror view */
+			z-index: 1;
+			opacity: 0.6;
+		}
+
+		#hand-canvas {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			z-index: 2;
+			pointer-events: none;
+			/* No flip here yet, we will handle it in JS or via CSS if needed */
+		}
+
+		#three-canvas {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			z-index: 3;
+			pointer-events: none;
+		}
+
+		#ui {
+			position: absolute;
+			top: 30px;
+			left: 30px;
+			z-index: 10;
+			display: flex;
+			flex-direction: column;
+			gap: 15px;
+		}
+
+		.glow-text {
+			font-size: 2rem;
+			margin: 0;
+			letter-spacing: 4px;
+			text-shadow: 0 0 10px rgba(0, 150, 255, 0.8), 0 0 20px rgba(0, 150, 255, 0.4);
+			font-weight: 800;
+		}
+
+		.stats-card {
+			background: rgba(255, 255, 255, 0.05);
+			backdrop-filter: blur(12px);
+			border: 1px solid rgba(255, 255, 255, 0.1);
+			padding: 20px;
+			border-radius: 16px;
+			min-width: 240px;
+			box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+		}
+
+		.hand-info {
+			border-top: 1px solid rgba(255, 255, 255, 0.1);
+			margin-top: 10px;
+			padding-top: 10px;
+		}
+
+		.hand-label {
+			font-size: 0.75rem;
+			color: #aaa;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			margin-bottom: 5px;
+		}
+
+		.hand-data {
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			gap: 5px;
+			font-family: 'Courier New', Courier, monospace;
+			font-size: 0.85rem;
+		}
+
+		.status {
+			font-weight: bold;
+		}
+
+		.connected {
+			color: #00ff88;
+			text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+		}
+
+		.disconnected {
+			color: #ff4444;
+		}
+
+		.hint {
+			background: rgba(0, 150, 255, 0.1);
+			border-left: 3px solid #0096ff;
+			padding: 8px 12px;
+			border-radius: 4px;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="container">
+		<video id="video-feed" autoplay playsinline></video>
+		<canvas id="hand-canvas"></canvas>
+		<canvas id="three-canvas"></canvas>
+
+		<div id="ui">
+			<h1 class="glow-text">AR GLOBE</h1>
+			<div class="stats-card">
+				<p>Status: <span id="status" class="status disconnected">Connecting...</span></p>
+				<div id="hand-stats">
+					<p>No hands detected</p>
+				</div>
+			</div>
+			<div class="hint">
+				<small>• Palm: Follow/Spin<br>• Fist: Freeze</small>
+			</div>
+		</div>
+	</div>
+
+	<!-- Three.js from CDN -->
+	<script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+	<script type="module" src="./js/scene.js"></script>
+	<script type="module" src="./js/globe.js"></script>
+	<script type="module" src="./js/socket.js"></script>
+</body>
+
+</html>
