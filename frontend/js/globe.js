@@ -36,6 +36,14 @@ export function updateGlobe(data) {
 	globe.position.x += (targetX - globe.position.x) * 0.15;
 	globe.position.y += (targetY - globe.position.y) * 0.15;
 
+	// Dynamic Scaling based on hand distance (hand1.scale)
+	// hand_scale typically ranges from ~0.1 (far) to ~0.4 (close)
+	// We'll map this to a globe scale. Base scale 1.0 at hand_scale 0.2
+	const targetScale = hand1.scale * 5.0; 
+	const currentScale = globe.scale.x;
+	const newScale = currentScale + (targetScale - currentScale) * 0.15;
+	globe.scale.set(newScale, newScale, newScale);
+
 	// Rotation Control
 	if (data.hands.length > 1) {
 		// Hand 2 detected - Manual Rotation Mode

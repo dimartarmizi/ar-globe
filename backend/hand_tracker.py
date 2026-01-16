@@ -31,6 +31,10 @@ class HandTracker:
                 cy = (wrist.y + middle_mcp.y) / 2
                 cz = (wrist.z + middle_mcp.z) / 2
                 
+                # Hand scale based on distance between Wrist and Middle MCP
+                # This serves as a proxy for distance from camera
+                hand_scale = np.sqrt((wrist.x - middle_mcp.x)**2 + (wrist.y - middle_mcp.y)**2)
+
                 # Full landmarks list
                 landmarks = []
                 for lm in hand_landmarks.landmark:
@@ -54,6 +58,7 @@ class HandTracker:
                     "x": cx,
                     "y": cy,
                     "z": cz,
+                    "scale": float(hand_scale),
                     "landmarks": landmarks,
                     "gesture": "fist" if is_fist else "open",
                     "rotation_z": float(angle)

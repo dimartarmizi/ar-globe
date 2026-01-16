@@ -27,12 +27,13 @@ const HAND_CONNECTIONS = [
 async function startCamera() {
 	try {
 		const stream = await navigator.mediaDevices.getUserMedia({
-			video: { width: 640, height: 480 }
+			video: { width: 1280, height: 720 } // Slightly higher quality
 		});
 		video.srcObject = stream;
 		video.onloadedmetadata = () => {
 			handCanvas.width = video.videoWidth;
 			handCanvas.height = video.videoHeight;
+			updateStageSize();
 			sendFrames();
 		};
 	} catch (err) {
@@ -40,6 +41,31 @@ async function startCamera() {
 		statusEl.textContent = 'Camera Error';
 	}
 }
+
+function updateStageSize() {
+	const stage = document.getElementById('stage');
+	const videoAspect = video.videoWidth / video.videoHeight;
+	const windowAspect = window.innerWidth / window.innerHeight;
+
+	if (windowAspect > videoAspect) {
+		// Window is wider than video (pillarbox)
+		const height = window.innerHeight;
+		const width = height * videoAspect;
+		stage.style.width = `${width}px`;
+		stage.style.height = `${height}px`;
+	} else {
+		// Window is taller than video (letterbox)
+		const width = window.innerWidth;
+		const height = width / videoAspect;
+		stage.style.width = `${width}px`;
+		stage.style.height = `${height}px`;
+	}
+	
+	// Notify scene to resize
+	window.dispatchEvent(new Event('resize'));
+}
+
+window.addEventListener('resize', updateStageSize);
 
 function sendFrames() {
 	if (socket.readyState === WebSocket.OPEN) {

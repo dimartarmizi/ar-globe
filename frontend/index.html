@@ -19,6 +19,20 @@
 			width: 100vw;
 			height: 100vh;
 			background: radial-gradient(circle at center, #1a1a2e 0%, #000 100%);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			overflow: hidden;
+		}
+
+		#stage {
+			position: relative;
+			/* Aspect ratio will be set by JS */
+			width: 100%;
+			height: 100%;
+			max-width: 100vw;
+			max-height: 100vh;
+			box-shadow: 0 0 50px rgba(0,0,0,0.5);
 		}
 
 		#video-feed {
@@ -27,7 +41,7 @@
 			left: 0;
 			width: 100%;
 			height: 100%;
-			object-fit: cover;
+			object-fit: cover; /* Still cover within the stage */
 			transform: scaleX(-1);
 			/* Mirror view */
 			z-index: 1;
@@ -42,7 +56,6 @@
 			height: 100%;
 			z-index: 2;
 			pointer-events: none;
-			/* No flip here yet, we will handle it in JS or via CSS if needed */
 		}
 
 		#three-canvas {
@@ -129,9 +142,11 @@
 
 <body>
 	<div id="container">
-		<video id="video-feed" autoplay playsinline></video>
-		<canvas id="hand-canvas"></canvas>
-		<canvas id="three-canvas"></canvas>
+		<div id="stage">
+			<video id="video-feed" autoplay playsinline></video>
+			<canvas id="hand-canvas"></canvas>
+			<canvas id="three-canvas"></canvas>
+		</div>
 
 		<div id="ui">
 			<h1 class="glow-text">AR GLOBE</h1>
