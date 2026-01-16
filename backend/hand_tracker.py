@@ -7,7 +7,7 @@ class HandTracker:
         self.mp_hands = mp.solutions.hands
         self.hands = self.mp_hands.Hands(
             static_image_mode=False,
-            max_num_hands=1,
+            max_num_hands=2,
             min_detection_confidence=0.7,
             min_tracking_confidence=0.5
         )
@@ -21,7 +21,11 @@ class HandTracker:
         hands_data = []
 
         if results.multi_hand_landmarks:
-            for hand_landmarks in results.multi_hand_landmarks:
+            for idx, hand_landmarks in enumerate(results.multi_hand_landmarks):
+                # Get handedness and swap it (MediaPipe reports mirrored for self-view)
+                handedness_raw = results.multi_handedness[idx].classification[0].label
+                handedness = "Right" if handedness_raw == "Left" else "Left"
+                
                 # Use Wrist (0) and Middle MCP (9) for better anchoring
                 wrist = hand_landmarks.landmark[0]
                 middle_mcp = hand_landmarks.landmark[9]
@@ -59,6 +63,7 @@ class HandTracker:
                     "y": cy,
                     "z": cz,
                     "scale": float(hand_scale),
+                    "label": handedness,
                     "landmarks": landmarks,
                     "gesture": "fist" if is_fist else "open",
                     "rotation_z": float(angle)

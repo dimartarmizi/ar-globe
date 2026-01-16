@@ -15,6 +15,9 @@ export const globe = new THREE.Mesh(geometry, material);
 globe.visible = false; // Hidden until hand detected
 scene.add(globe);
 
+// State for relative rotation
+let lastRotationPos = { x: null, y: null };
+
 export function updateGlobe(data) {
 	if (!data.hand_detected || data.hands.length === 0) {
 		globe.visible = false;
@@ -23,47 +26,67 @@ export function updateGlobe(data) {
 
 	globe.visible = true;
 
-	// Hand 1 (Master) - Controls Position
-	const hand1 = data.hands[0];
+	// Identify hands: Left Hand is primary (position), Right Hand is secondary (rotation)
+	const leftHand = data.hands.find(h => h.label === 'Left') || (data.hands.length === 1 ? data.hands[0] : null);
+	const rightHand = data.hands.find(h => h.label === 'Right');
 
-	// Calculate visible area at Z=0 for the current camera perspective
-	const vFOV = THREE.MathUtils.degToRad(camera.fov);
-	const dist = camera.position.z;
-	const height = 2 * Math.tan(vFOV / 2) * dist;
-	const width = height * camera.aspect;
+	// --- 1. Position Control (Left Hand) ---
+	if (leftHand) {
+		// Calculate visible area at Z=0 for the current camera perspective
+		const vFOV = THREE.MathUtils.degToRad(camera.fov);
+		const dist = camera.position.z;
+		const height = 2 * Math.tan(vFOV / 2) * dist;
+		const width = height * camera.aspect;
 
-	// Fix Mirroring: Invert X coordinate
-	// Exact mapping based on calculated frustum size
-	const targetX = ((1 - hand1.x) - 0.5) * width;
-	const targetY = -(hand1.y - 0.5) * height;
+		const targetX = ((1 - leftHand.x) - 0.5) * width;
+		const targetY = -(leftHand.y - 0.5) * height;
 
-	// Smooth position follow
-	globe.position.x += (targetX - globe.position.x) * 0.2;
-	globe.position.y += (targetY - globe.position.y) * 0.2;
+		// Smooth position follow
+		globe.position.x += (targetX - globe.position.x) * 0.2;
+		globe.position.y += (targetY - globe.position.y) * 0.2;
 
-	// Dynamic Scaling based on hand distance (hand1.scale)
-	// Adjusted multiplier for the new camera distance
-	const targetScale = hand1.scale * 8.0; 
-	const currentScale = globe.scale.x;
-	const newScale = currentScale + (targetScale - currentScale) * 0.15;
-	globe.scale.set(newScale, newScale, newScale);
+		// Scaling ALWAYS from Left Hand distance
+		const targetScale = leftHand.scale * 8.0;
+		const currentScale = globe.scale.x;
+		const newScale = currentScale + (targetScale - currentScale) * 0.15;
+		globe.scale.set(newScale, newScale, newScale);
+	}
 
-	// Rotation Control
-	if (data.hands.length > 1) {
-		// Hand 2 detected - Manual Rotation Mode
-		const hand2 = data.hands[1];
-		if (hand2.gesture === 'open') {
-			// Use Hand 2's horizontal movement to spin the globe
-			const rotSpeed = (hand2.x - 0.5) * 0.2;
-			globe.rotation.y += rotSpeed;
+	// --- 2. Spin Control (Right Hand) ---
+	if (rightHand) {
+		// Relative Rotation: Only rotate when moving after "opening" the hand
+		if (rightHand.gesture === 'open') {
+			if (lastRotationPos.x !== null && lastRotationPos.y !== null) {
+				// Calculate displacement since last frame
+				const deltaX = (rightHand.x - lastRotationPos.x) * 7.0; 
+				const deltaY = (rightHand.y - lastRotationPos.y) * 7.0;
+				
+				globe.rotation.y -= deltaX;
+				globe.rotation.x += deltaY;
+			}
+			// Store current position as reference for next frame
+			lastRotationPos.x = rightHand.x;
+			lastRotationPos.y = rightHand.y;
+		} else {
+			// Hand is a Fist: Reset starting point to ensure no jump when opening
+			lastRotationPos.x = null;
+			lastRotationPos.y = null;
 		}
 	} else {
-		// Single hand mode
-		if (hand1.gesture === 'open') {
-			globe.rotation.y += 0.01; // Default slow spin
+		// Reset state if hand is lost
+		lastRotationPos.x = null;
+		lastRotationPos.y = null;
+
+		// Auto-spin if only one hand and it's open
+		if (leftHand && leftHand.gesture === 'open') {
+			globe.rotation.y += 0.01;
 		}
 	}
 
-	// Maintain a slight tilt based on primary hand's rotation_z
-	globe.rotation.x = hand1.rotation_z * 0.5;
+	// Dynamic Tilt based on Left Hand (wrist rotation)
+	// We use += and a factor to avoid overwritting the free spin
+	if (leftHand && !rightHand) {
+		const targetTilt = leftHand.rotation_z * 0.5;
+		globe.rotation.x += (targetTilt - globe.rotation.x) * 0.05;
+	}
 }

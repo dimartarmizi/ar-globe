@@ -80,9 +80,10 @@ function drawHand(hand, color) {
 	const landmarks = hand.landmarks;
 	const w = handCanvas.width;
 	const h = handCanvas.height;
+	const label = hand.label; // Left or Right
 
 	// Draw Connections (Skeleton)
-	hctx.strokeStyle = color;
+	hctx.strokeStyle = label === 'Right' ? '#00ff00' : '#0096ff'; // Green for Right, Blue for Left
 	hctx.lineWidth = 3;
 	hctx.beginPath();
 	HAND_CONNECTIONS.forEach(([i, j]) => {
@@ -96,7 +97,7 @@ function drawHand(hand, color) {
 
 	// Draw Dots
 	landmarks.forEach((lm, idx) => {
-		hctx.fillStyle = idx === 0 ? '#ff0000' : (idx % 4 === 0 ? '#00ff00' : '#ffffff');
+		hctx.fillStyle = idx === 0 ? '#ff0000' : (idx % 4 === 0 ? (label === 'Right' ? '#00ff00' : '#0096ff') : '#ffffff');
 		hctx.beginPath();
 		hctx.arc((1 - lm.x) * w, lm.y * h, idx % 4 === 0 ? 5 : 3, 0, Math.PI * 2);
 		hctx.fill();
@@ -111,12 +112,11 @@ function updateStats(hands) {
 
 	statsContainer.innerHTML = hands.map((hand, i) => `
         <div class="hand-info">
-            <div class="hand-label">Hand ${i + 1} - ${hand.gesture.toUpperCase()}</div>
+            <div class="hand-label">${hand.label} Hand - ${hand.gesture.toUpperCase()}</div>
             <div class="hand-data">
                 <span>X:</span> <span>${hand.x.toFixed(2)}</span>
                 <span>Y:</span> <span>${hand.y.toFixed(2)}</span>
                 <span>Z:</span> <span>${hand.z.toFixed(2)}</span>
-                <span>Rot:</span> <span>${((hand.rotation_z * 180) / Math.PI).toFixed(0)}°</span>
             </div>
         </div>
     `).join('');
