@@ -7,13 +7,13 @@ A futuristic web application that allows you to control a 3D Earth globe using r
 - **Real-time Hand Tracking**: Powered by MediaPipe for precise 21-point hand landmark detection.
 - **AR Experience**: The 3D globe follows your palm's position and orientation.
 - **Two-Hand Interaction**:
-    - **Primary Hand**: Controls the globe's position (move your palm to move the globe).
-    - **Secondary Hand**: Controls rotation (horizontal movement spins the globe).
+    - **Primary Hand (Left)**: Controls the globe's position and scale (move your left palm to move the globe).
+    - **Secondary Hand (Right)**: Controls rotation (move your right hand while making a **Fist** to spin the globe).
 - **Gesture Control**:
-    - **Open Palm**: Globe is active and follows movement.
-    - **Fist Gesture**: "Freezes" the globe in its current state.
+    - **Open Palm (Left Hand)**: Globe is active and follows movement.
+    - **Fist Gesture (Right Hand)**: Acts as a "grab" to manually rotate the globe.
 - **Live Statistics**: Modern UI panel showing real-time coordinates, rotation, and gesture status.
-- **Mirrored View**: Natural interaction that matches your movement on camera.
+- **Mirrored View**: Natural interaction that matches your movement on camera (Backend automatically swaps hand labels for better UX).
 
 ## 🛠️ Technologies
 
@@ -69,9 +69,9 @@ ar-globe/
 
 1. Grant camera permission when prompted.
 2. Wait for the "Connected" status.
-3. Show your **Open Palm** to the camera.
+3. Show your **Left Hand (Open Palm)** to the camera.
 4. Move your hand to see the globe follow!
-5. Bring in a **Second Hand** to swipe and spin the globe.
+5. Bring in your **Right Hand** and make a **Fist** to swipe and spin the globe.
 
 ---
 Developed by **Dimar Tarmizi**

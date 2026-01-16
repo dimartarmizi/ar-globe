@@ -6,7 +6,6 @@ const video = document.getElementById('video-feed');
 const handCanvas = document.getElementById('hand-canvas');
 const hctx = handCanvas.getContext('2d');
 
-// Hidden canvas for frame capture
 const captureCanvas = document.createElement('canvas');
 const cctx = captureCanvas.getContext('2d');
 captureCanvas.width = 320;
@@ -14,20 +13,19 @@ captureCanvas.height = 240;
 
 const socket = new WebSocket('ws://localhost:8000/ws/hand-tracking');
 
-// MediaPipe Landmark Connections (Skeleton)
 const HAND_CONNECTIONS = [
-	[0, 1], [1, 2], [2, 3], [3, 4], // Thumb
-	[0, 5], [5, 6], [6, 7], [7, 8], // Index
-	[5, 9], [9, 10], [10, 11], [11, 12], // Middle
-	[9, 13], [13, 14], [14, 15], [15, 16], // Ring
-	[13, 17], [17, 18], [18, 19], [19, 20], // Pinky
-	[0, 17] // Palm base
+	[0, 1], [1, 2], [2, 3], [3, 4],
+	[0, 5], [5, 6], [6, 7], [7, 8],
+	[5, 9], [9, 10], [10, 11], [11, 12],
+	[9, 13], [13, 14], [14, 15], [15, 16],
+	[13, 17], [17, 18], [18, 19], [19, 20],
+	[0, 17]
 ];
 
 async function startCamera() {
 	try {
 		const stream = await navigator.mediaDevices.getUserMedia({
-			video: { width: 1280, height: 720 } // Slightly higher quality
+			video: { width: 1280, height: 720 }
 		});
 		video.srcObject = stream;
 		video.onloadedmetadata = () => {
@@ -48,20 +46,17 @@ function updateStageSize() {
 	const windowAspect = window.innerWidth / window.innerHeight;
 
 	if (windowAspect > videoAspect) {
-		// Window is wider than video (pillarbox)
 		const height = window.innerHeight;
 		const width = height * videoAspect;
 		stage.style.width = `${width}px`;
 		stage.style.height = `${height}px`;
 	} else {
-		// Window is taller than video (letterbox)
 		const width = window.innerWidth;
 		const height = width / videoAspect;
 		stage.style.width = `${width}px`;
 		stage.style.height = `${height}px`;
 	}
-	
-	// Notify scene to resize
+
 	window.dispatchEvent(new Event('resize'));
 }
 
@@ -73,29 +68,26 @@ function sendFrames() {
 		const dataUrl = captureCanvas.toDataURL('image/jpeg', 0.4);
 		socket.send(dataUrl);
 	}
-	setTimeout(sendFrames, 40); // Target ~25 FPS
+	setTimeout(sendFrames, 40);
 }
 
 function drawHand(hand, color) {
 	const landmarks = hand.landmarks;
 	const w = handCanvas.width;
 	const h = handCanvas.height;
-	const label = hand.label; // Left or Right
+	const label = hand.label;
 
-	// Draw Connections (Skeleton)
-	hctx.strokeStyle = label === 'Right' ? '#00ff00' : '#0096ff'; // Green for Right, Blue for Left
+	hctx.strokeStyle = label === 'Right' ? '#00ff00' : '#0096ff';
 	hctx.lineWidth = 3;
 	hctx.beginPath();
 	HAND_CONNECTIONS.forEach(([i, j]) => {
 		const lm1 = landmarks[i];
 		const lm2 = landmarks[j];
-		// Note: x is flipped in video, so we flip it here to match mirrored video
 		hctx.moveTo((1 - lm1.x) * w, lm1.y * h);
 		hctx.lineTo((1 - lm2.x) * w, lm2.y * h);
 	});
 	hctx.stroke();
 
-	// Draw Dots
 	landmarks.forEach((lm, idx) => {
 		hctx.fillStyle = idx === 0 ? '#ff0000' : (idx % 4 === 0 ? (label === 'Right' ? '#00ff00' : '#0096ff') : '#ffffff');
 		hctx.beginPath();
@@ -136,7 +128,6 @@ socket.onclose = () => {
 socket.onmessage = (event) => {
 	const data = JSON.parse(event.data);
 
-	// Clear canvas
 	hctx.clearRect(0, 0, handCanvas.width, handCanvas.height);
 
 	if (data.hand_detected) {
